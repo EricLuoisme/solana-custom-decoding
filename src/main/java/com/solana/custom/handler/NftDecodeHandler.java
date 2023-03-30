@@ -1,6 +1,10 @@
 package com.solana.custom.handler;
 
+import com.solana.custom.dto.extra.CompactNftInfo;
 import com.solana.custom.dto.metaplex.MetaplexAccountInfoData;
+import com.solana.custom.dto.metaplex.MetaplexStandardJsonObj;
+import com.solana.custom.utils.req.SolanaRequestUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.bitcoinj.core.Base58;
 import org.bouncycastle.util.encoders.Base64;
 import org.web3j.utils.Numeric;
@@ -21,20 +25,65 @@ import static com.solana.custom.utils.atom.ByteUtils.trimRight;
  */
 public class NftDecodeHandler {
 
+
     /**
-     * Decode Metaplex accountInfo's data
+     * Compact version of parsing nft info
+     *
+     * @param base64DataStr nft data info encoded in Base64
+     * @return decoded compact nft info
+     */
+    public static Optional<CompactNftInfo> parseCompactNftInfo(String base64DataStr) {
+
+        if (StringUtils.isBlank(base64DataStr)) {
+            return Optional.empty();
+        }
+
+        byte[] decode = Base64.decode(base64DataStr);
+        if (decode.length < 320) {
+            return Optional.empty();
+        }
+
+        byte[] mint = new byte[32];
+        byte[] name = new byte[36];
+        byte[] symbol = new byte[14];
+        byte[] uri = new byte[204];
+        System.arraycopy(decode, 33, mint, 0, 32);
+        System.arraycopy(decode, 65, name, 0, 36);
+        System.arraycopy(decode, 101, symbol, 0, 14);
+        System.arraycopy(decode, 115, uri, 0, 204);
+        byte[] trimName = trimRight(name);
+        byte[] trimSymbol = trimRight(symbol);
+        byte[] trimUri = trimRight(uri);
+        if (trimName.length < 4 || trimSymbol.length < 4 || trimUri.length < 4) {
+            return Optional.empty();
+        }
+        return Optional.of(
+                CompactNftInfo.builder()
+                        .mint(Base58.encode(mint))
+                        .name(new String(trimName, 4, trimName.length - 4, StandardCharsets.UTF_8))
+                        .symbol(new String(trimSymbol, 4, trimSymbol.length - 4, StandardCharsets.UTF_8))
+                        .uri(new String(trimUri, 4, trimUri.length - 4, StandardCharsets.UTF_8))
+                        .build());
+    }
+
+
+    /**
+     * Decode full Metaplex accountInfo's data
      *
      * @param base64DataStr nft data info encoded in Base64
      * @return decoded nft info
      */
-    public static Optional<MetaplexAccountInfoData> parseMetaplexAccInfo(String base64DataStr) {
+    public static Optional<MetaplexAccountInfoData> parseFullNftInfo(String base64DataStr) {
+
+        if (StringUtils.isBlank(base64DataStr)) {
+            return Optional.empty();
+        }
 
         byte[] decode = Base64.decode(base64DataStr);
         if (decode.length < 320) {
             // < 320 must be pure token
             return Optional.empty();
         }
-
         // key, updateAuthority, mint, name, symbol, uri, sellerFeeBasicPoints
         MetaplexAccountInfoData.MetaplexAccountInfoDataBuilder builder = MetaplexAccountInfoData.builder();
         byte[] key = new byte[1];
@@ -54,7 +103,7 @@ public class NftDecodeHandler {
         byte[] trimName = trimRight(name);
         byte[] trimSymbol = trimRight(symbol);
         byte[] trimUri = trimRight(uri);
-        if (trimUri.length < 4) {
+        if (trimName.length < 4 || trimSymbol.length < 4 || trimUri.length < 4) {
             return Optional.empty();
         }
         int sellerFeeBasicPointInt = 0;
