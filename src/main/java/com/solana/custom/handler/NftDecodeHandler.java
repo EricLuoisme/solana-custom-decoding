@@ -4,6 +4,7 @@ import com.solana.custom.dto.extra.CompactNftInfo;
 import com.solana.custom.dto.metaplex.MetaplexAccountInfoData;
 import com.solana.custom.dto.metaplex.MetaplexStandardJsonObj;
 import com.solana.custom.utils.req.SolanaRequestUtil;
+import okhttp3.OkHttpClient;
 import org.apache.commons.lang3.StringUtils;
 import org.bitcoinj.core.Base58;
 import org.bouncycastle.util.encoders.Base64;
@@ -24,6 +25,34 @@ import static com.solana.custom.utils.atom.ByteUtils.trimRight;
  * 2023/3/30
  */
 public class NftDecodeHandler {
+
+    /**
+     * Call and get nft concrete json result
+     *
+     * @param base64DataStr nft data info encoded in Base64
+     * @return standard metaplex json obj
+     */
+    public static Optional<MetaplexStandardJsonObj> parseGetJsonObj(OkHttpClient okHttpClient, String base64DataStr) {
+
+        if (StringUtils.isBlank(base64DataStr)) {
+            return Optional.empty();
+        }
+
+        byte[] decode = Base64.decode(base64DataStr);
+        if (decode.length < 320) {
+            return Optional.empty();
+        }
+
+        byte[] uri = new byte[204];
+        System.arraycopy(decode, 115, uri, 0, 204);
+        byte[] trimUri = trimRight(uri);
+        if (trimUri.length < 4) {
+            return Optional.empty();
+        }
+
+        return SolanaRequestUtil.metaplexExternalJsonReq(okHttpClient,
+                new String(trimUri, 4, trimUri.length - 4, StandardCharsets.UTF_8));
+    }
 
 
     /**

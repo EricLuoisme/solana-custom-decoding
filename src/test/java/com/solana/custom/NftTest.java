@@ -4,7 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.solana.custom.dto.extra.CompactNftInfo;
 import com.solana.custom.dto.metaplex.MetaplexAccountInfoData;
+import com.solana.custom.dto.metaplex.MetaplexStandardJsonObj;
 import com.solana.custom.handler.NftDecodeHandler;
+import okhttp3.OkHttpClient;
 import org.junit.Test;
 
 import java.util.Optional;
@@ -16,6 +18,9 @@ import java.util.Optional;
 public class NftTest {
 
     private static final ObjectMapper om = new ObjectMapper();
+
+    private static final OkHttpClient client = new OkHttpClient();
+
 
     @Test
     public void nftInfoDataDecoding() throws JsonProcessingException {
@@ -30,4 +35,13 @@ public class NftTest {
         Optional<CompactNftInfo> compactNftInfo = NftDecodeHandler.parseCompactNftInfo(base64DataStr);
         System.out.println(om.writerWithDefaultPrettyPrinter().writeValueAsString(compactNftInfo.get()));
     }
+
+    @Test
+    public void requestForConcreteNftJson() throws JsonProcessingException {
+        // https://arweave.net/qv0GAsn_9O2N8yilt2YuWEZa2kdONYpwnDr6XWJMKWU
+        String base64DataStr = "BJFmu4q8Nqbfbjctj5+IGdJqz1GNfBTwx+ef1OIIT5lEyZHNApSQhhH4+13jqVLCWl2buaAfO1onpJALNxFgpBcgAAAATnVtYmVyICMwMDA1AAAAAAAAAAAAAAAAAAAAAAAAAAAKAAAATkIAAAAAAAAAAMgAAABodHRwczovL2Fyd2VhdmUubmV0L2ZOWjhRaWJzd05UbjZPSXhNOGZIMFZwcFFhYzBtdGsyVk5HMlVET3ptLUUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJYAAQIAAABwR1rHRLcV9Pgwql6fuU9yLlnguuhQosZbVaLFO1SDZwEAkWa7irw2pt9uNy2Pn4gZ0mrPUY18FPDH55/U4ghPmUQAZAEBAf8BAAEBi/F3/535aQiLpyuFs9WhGNyT1kiOX782bZ4mKJOp0wUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==";
+        Optional<MetaplexStandardJsonObj> opMetaplex = NftDecodeHandler.parseGetJsonObj(client, base64DataStr);
+        System.out.println(om.writerWithDefaultPrettyPrinter().writeValueAsString(opMetaplex.get()));
+    }
+
 }
