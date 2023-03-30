@@ -40,4 +40,21 @@ public class ByteUtils {
         }
     }
 
+
+    /**
+     * Trim empty right
+     *
+     * @param array byte array
+     * @return compact array
+     */
+    public static byte[] trimRight(byte[] array) {
+        int i = array.length - 1;
+        while (array[i] == 0 && i >= 0) {
+            i--;
+        }
+        byte[] trimArr = new byte[i + 1];
+        System.arraycopy(array, 0, trimArr, 0, i + 1);
+        return trimArr;
+    }
+
 }

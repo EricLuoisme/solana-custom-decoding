@@ -23,7 +23,7 @@ import static com.solana.custom.constant.ProgramConstants.TOKEN_PROGRAM_ID;
  * @author Roylic
  * 2023/2/2
  */
-public final class AssetChangedHandler {
+public final class AssetDiffHandler {
 
     /**
      * Get all related address's asset changing under single Txn

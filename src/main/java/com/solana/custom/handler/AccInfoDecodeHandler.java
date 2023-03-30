@@ -17,7 +17,7 @@ import static com.solana.custom.constant.ProgramConstants.METAPLEX_TOKEN_META_PR
  * @author Roylic
  * 2023/3/29
  */
-public class AccountInfoHandler {
+public class AccInfoDecodeHandler {
 
     private static byte[] META_DATA_BYTE = "metadata".getBytes(StandardCharsets.UTF_8);
     private static PublicKey METAPLEX_PROGRAM_ID_PUB_KEY = new PublicKey(METAPLEX_TOKEN_META_PROGRAM_ID);
@@ -58,22 +58,6 @@ public class AccountInfoHandler {
                 .build();
         fillData(account.getData(), flat);
         return flat;
-    }
-
-    /**
-     * Trim empty right
-     *
-     * @param array byte array
-     * @return compact array
-     */
-    public static byte[] trimRight(byte[] array) {
-        int i = array.length - 1;
-        while (array[i] == 0 && i >= 0) {
-            i--;
-        }
-        byte[] trimArr = new byte[i + 1];
-        System.arraycopy(array, 0, trimArr, 0, i + 1);
-        return trimArr;
     }
 
 
