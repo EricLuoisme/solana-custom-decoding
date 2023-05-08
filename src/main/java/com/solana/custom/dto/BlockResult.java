@@ -17,10 +17,10 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BlockResult {
-    private Integer blockHeight;
-    private Integer blockTime;
+    private Long blockHeight;
+    private Long blockTime;
     private String blockhash;
-    private Integer parentSlot;
+    private Long parentSlot;
     private String previousBlockhash;
     private List<Txn> transactions;
 
