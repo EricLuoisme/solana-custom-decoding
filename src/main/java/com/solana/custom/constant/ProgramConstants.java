@@ -12,6 +12,10 @@ import java.util.Set;
  */
 public class ProgramConstants {
 
+    public static final Integer SOL_TRANSFER_INSTRUCTION_IDX = 1;
+
+    public static final Integer SPL_TRANSFER_INSTRUCTION_IDX = 4;
+
     public static final String SYSTEM_PROGRAM_ID = "11111111111111111111111111111111";
 
     public static final String CONFIG_PROGRAM_ID = "Config1111111111111111111111111111111111111";

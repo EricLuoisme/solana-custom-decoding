@@ -4,12 +4,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.solana.custom.constant.NetConstants;
 import com.solana.custom.dto.Instructions;
 import com.solana.custom.dto.TxnResult;
+import com.solana.custom.handler.TxnDecodeHandler;
 import com.solana.custom.utils.atom.ByteUtils;
 import com.solana.custom.utils.req.SolanaRequestUtil;
 import okhttp3.OkHttpClient;
 import org.bitcoinj.core.Base58;
 import org.junit.Test;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -50,5 +52,13 @@ public class InstructionTest {
             BigInteger amount = ByteUtils.readUint64(decode, 1);
             System.out.println(amount);
         }
+    }
+
+    @Test
+    public void decodeTest() {
+        String sig = "41ZCAJiXCHmXjtGTm5VtB5q1F1eWoGa84xBBiErdDsqf7K3m2yn4GACjuXzimMg6zjtGA2MGuu9gPRmRqA6bV3ka";
+//        String sig = "4JQVvVJ3QQaBosMDUB7S9D3xRujgcb47jpdyXiUt9us5j5YjWTg9x6sHhpaPagsETZ5hPMVJR3LQ1SBnp4YCyHti";
+        Optional<BigDecimal> opAmt = TxnDecodeHandler.getInputTxnAmt(client, NetConstants.DEVNET_URL, sig);
+        System.out.println(opAmt.get());
     }
 }
