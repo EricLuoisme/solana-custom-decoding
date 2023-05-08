@@ -68,8 +68,12 @@ public class SolanaRequestUtil {
             try {
                 JSONObject respObject = JSONObject.parseObject(resp);
                 JSONObject error = respObject.getJSONObject("error");
-                if (null != error && error.getString("message").contains("was skipped, or missing")) {
-                    return Optional.of(BlockResult.builder().blockSkip(true).build());
+                if (null != error) {
+                    BlockResult result = null;
+                    if (error.getString("message").contains("was skipped, or missing")) {
+                        result = BlockResult.builder().blockSkip(true).build();
+                    }
+                    return Optional.ofNullable(result);
                 }
                 return Optional.of(
                         JSONObject.parseObject(respObject.getJSONObject("result").toJSONString(),
