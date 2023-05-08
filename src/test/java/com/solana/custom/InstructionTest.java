@@ -37,4 +37,18 @@ public class InstructionTest {
             System.out.println(buffer.getLong());
         }
     }
+
+    @Test
+    public void splTransferTest() {
+        String sig = "4JQVvVJ3QQaBosMDUB7S9D3xRujgcb47jpdyXiUt9us5j5YjWTg9x6sHhpaPagsETZ5hPMVJR3LQ1SBnp4YCyHti";
+        Optional<TxnResult> opTxnResult = SolanaRequestUtil.rpcTransactionBySignature(client, NetConstants.DEVNET_URL, sig);
+        if (opTxnResult.isPresent()) {
+            TxnResult txnResult = opTxnResult.get();
+            List<Instructions> instructions = txnResult.getTransaction().getMessage().getInstructions();
+            Instructions inst = instructions.get(0);
+            byte[] decode = Base58.decode(inst.getData());
+            BigInteger amount = ByteUtils.readUint64(decode, 1);
+            System.out.println(amount);
+        }
+    }
 }
