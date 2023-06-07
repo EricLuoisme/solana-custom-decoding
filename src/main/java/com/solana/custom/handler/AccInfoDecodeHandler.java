@@ -2,12 +2,16 @@ package com.solana.custom.handler;
 
 import com.solana.custom.dto.AccountInfo;
 import com.solana.custom.dto.extra.AccountInfoFlat;
+import com.solana.custom.dto.token.MintAccount;
 import com.solana.custom.utils.atom.PublicKey;
+import com.solana.custom.utils.req.SolanaRequestUtil;
+import okhttp3.OkHttpClient;
 import org.bitcoinj.core.Base58;
 import org.bouncycastle.util.encoders.Base64;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Optional;
 
 import static com.solana.custom.constant.ProgramConstants.METAPLEX_TOKEN_META_PROGRAM_ID;
 
@@ -21,6 +25,20 @@ public class AccInfoDecodeHandler {
 
     private static byte[] META_DATA_BYTE = "metadata".getBytes(StandardCharsets.UTF_8);
     private static PublicKey METAPLEX_PROGRAM_ID_PUB_KEY = new PublicKey(METAPLEX_TOKEN_META_PROGRAM_ID);
+
+
+    /**
+     * Derive mint account's info by associated token account
+     *
+     * @param okHttpClient client
+     * @param nodeUrl      nodeUrl
+     * @param ata          associated token account
+     * @return mint account
+     */
+    public static Optional<MintAccount> deriveMintAccount(OkHttpClient okHttpClient, String nodeUrl, String ata) {
+        return Optional.empty();
+    }
+
 
     /**
      * Derive Nft token address
