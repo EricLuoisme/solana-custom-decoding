@@ -10,18 +10,19 @@
     <version>0.0.1-SNAPSHOT</version>
 
     <properties>
-        <java.version>1.8</java.version>
+        <java.version>21</java.version>
+        <maven.complier.source>21</maven.complier.source>
+        <maven.complier.target>21</maven.complier.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <spring-boot.version>2.3.7.RELEASE</spring-boot.version>
+        <!-- framework -->
+        <spring-cloud.version>2022.0.4</spring-cloud.version>
         <!-- other -->
-        <btcj.version>0.16.1</btcj.version>
-        <web3j.version>4.9.5</web3j.version>
-        <okhttp.version>4.9.3</okhttp.version>
-        <sslContext.version>4.4.15</sslContext.version>
-        <fastjson.version>2.0.5</fastjson.version>
+        <btcj.version>0.16.2</btcj.version>
+        <web3j.version>4.10.3</web3j.version>
+        <fastjson.version>2.0.41</fastjson.version>
         <common3.version>3.12.0</common3.version>
-        <lombok.version>1.18.26</lombok.version>
+        <lombok.version>1.18.30</lombok.version>
     </properties>
 
     <dependencies>
@@ -38,25 +39,6 @@
             <groupId>org.web3j</groupId>
             <artifactId>core</artifactId>
             <version>${web3j.version}</version>
-        </dependency>
-
-        <!-- Okhttp -->
-        <dependency>
-            <groupId>com.squareup.okhttp3</groupId>
-            <artifactId>okhttp</artifactId>
-            <version>${okhttp.version}</version>
-        </dependency>
-        <!-- okhttp + tls -->
-        <dependency>
-            <groupId>com.squareup.okhttp3</groupId>
-            <artifactId>okhttp-tls</artifactId>
-            <version>${okhttp.version}</version>
-        </dependency>
-        <!-- SSLContexts -->
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpcore</artifactId>
-            <version>${sslContext.version}</version>
         </dependency>
 
         <!-- Json -->
@@ -99,8 +81,8 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>8</source>
-                    <target>8</target>
+                    <source>21</source>
+                    <target>21</target>
                 </configuration>
             </plugin>
         </plugins>
