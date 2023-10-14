@@ -3,11 +3,10 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.solana.custom</groupId>
     <artifactId>solana-custom-decoding</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.2-SNAPSHOT</version>
 
     <properties>
         <java.version>21</java.version>
@@ -15,9 +14,8 @@
         <maven.complier.target>21</maven.complier.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <!-- framework -->
-        <spring-cloud.version>2022.0.4</spring-cloud.version>
         <!-- other -->
+        <httpclient.version>1.1.11</httpclient.version>
         <btcj.version>0.16.2</btcj.version>
         <web3j.version>4.10.3</web3j.version>
         <fastjson.version>2.0.41</fastjson.version>
@@ -26,6 +24,13 @@
     </properties>
 
     <dependencies>
+
+        <!-- HttpClient -->
+        <dependency>
+            <groupId>io.projectreactor.netty</groupId>
+            <artifactId>reactor-netty</artifactId>
+            <version>${httpclient.version}</version>
+        </dependency>
 
         <!-- ECC -->
         <dependency>
