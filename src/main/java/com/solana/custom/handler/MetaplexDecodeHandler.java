@@ -1,17 +1,14 @@
-package com.solana.custom.handler.rx;
+package com.solana.custom.handler;
 
 import com.solana.custom.dto.extra.CompactNftInfo;
 import com.solana.custom.dto.metaplex.MetaplexAccountInfoData;
 import com.solana.custom.dto.metaplex.MetaplexStandardJsonObj;
-import com.solana.custom.utils.req.ExternalRxRequestUtil;
 import com.solana.custom.utils.req.SolanaRequestUtil;
-import com.solana.custom.utils.req.SolanaRxRequestUtil;
 import okhttp3.OkHttpClient;
 import org.apache.commons.lang3.StringUtils;
 import org.bitcoinj.core.Base58;
 import org.bouncycastle.util.encoders.Base64;
 import org.web3j.utils.Numeric;
-import reactor.core.publisher.Mono;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -27,7 +24,7 @@ import static com.solana.custom.utils.atom.ByteUtils.trimRight;
  * @author Roylic
  * 2023/3/30
  */
-public class NftDecodeHandler {
+public class MetaplexDecodeHandler {
 
     /**
      * Call and get nft concrete json result
@@ -35,29 +32,26 @@ public class NftDecodeHandler {
      * @param base64DataStr nft data info encoded in Base64
      * @return standard metaplex json obj
      */
-    public static Mono<MetaplexStandardJsonObj> parseGetJsonObj(String base64DataStr) {
+    public static Optional<MetaplexStandardJsonObj> accountInfoData2JsonObj(OkHttpClient okHttpClient, String base64DataStr) {
 
         if (StringUtils.isBlank(base64DataStr)) {
-            return Mono.empty();
+            return Optional.empty();
         }
 
         byte[] decode = Base64.decode(base64DataStr);
         if (decode.length < 320) {
-            return Mono.empty();
+            return Optional.empty();
         }
 
         byte[] uri = new byte[204];
         System.arraycopy(decode, 115, uri, 0, 204);
         byte[] trimUri = trimRight(uri);
         if (trimUri.length < 4) {
-            return Mono.empty();
+            return Optional.empty();
         }
 
-        Optional<MetaplexStandardJsonObj> opMetaResult = ExternalRxRequestUtil.metaplexExternalJsonReq(
+        return SolanaRequestUtil.metaplexExternalJsonReq(okHttpClient,
                 new String(trimUri, 4, trimUri.length - 4, StandardCharsets.UTF_8));
-        return opMetaResult
-                .map(Mono::just)
-                .orElseGet(Mono::empty);
     }
 
 

@@ -1,4 +1,4 @@
-package com.solana.custom.utils.req;
+package com.solana.custom.utils.req.rx;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
@@ -23,7 +23,7 @@ import static com.solana.custom.constant.JsonRpcConstants.*;
  * 2023/10/16
  */
 @Slf4j
-public class SolanaRxRequestUtil {
+public class SolanaRequestUtil_Rx {
 
     private static final int RETRY_COUNT = 3;
 
