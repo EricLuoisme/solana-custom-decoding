@@ -3,186 +3,129 @@ package com.solana.custom.utils.req;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.solana.custom.dto.*;
-import com.solana.custom.dto.metaplex.MetaplexStandardJsonObj;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import okhttp3.*;
-import org.apache.commons.lang3.StringUtils;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 import reactor.netty.ByteBufMono;
 import reactor.netty.http.client.HttpClient;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static com.solana.custom.constant.JsonRpcConstants.*;
 
 /**
  * Solana request util, reactive ver.
+ * Caller should handle the possible Mono error
  *
  * @author Roylic
- * 2023/3/24
+ * 2023/10/16
  */
+@Slf4j
 public class SolanaRxRequestUtil {
 
     private static final int RETRY_COUNT = 3;
-    private static final MediaType MEDIA_TYPE = MediaType.parse("application/json");
 
     /**
      * Get LatestBlock
      */
-    public static Optional<LatestBlock> rpcLatestBlock(OkHttpClient okHttpClient, String nodeUrl) {
-        String resp = executeJsonRpcReq(okHttpClient, nodeUrl, RPC_LATEST_BLOCK);
-        if (StringUtils.isNotBlank(resp)) {
-            try {
-                JSONObject respObject = JSONObject.parseObject(resp);
-                return Optional.of(
-                        JSONObject.parseObject(respObject.getJSONObject("result").getJSONObject("value").toJSONString(),
-                                LatestBlock.class));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return Optional.empty();
+    public static Mono<LatestBlock> rpcLatestBlock(HttpClient client) {
+        return executeJsonRpcReq(client, RPC_LATEST_BLOCK)
+                .doOnError(err -> log.error("<<< [SolanaRxRequestUtil] got exception on rpcAssociatedTokenAccountByOwner", err))
+                .flatMap(respJsonStr -> {
+                    JSONObject respObject = JSONObject.parseObject(respJsonStr);
+                    return null != respObject
+                            ? Mono.just(JSONObject.parseObject(respObject.getJSONObject("result").getJSONObject("value").toJSONString(), LatestBlock.class))
+                            : Mono.empty();
+                });
     }
 
     /**
      * Get Latest slot
      */
-    public static Optional<Long> rpcLatestSlot(OkHttpClient okHttpClient, String nodeUrl) {
-        String resp = executeJsonRpcReq(okHttpClient, nodeUrl, RPC_LATEST_SLOT);
-        if (StringUtils.isNotBlank(resp)) {
-            try {
-                JSONObject respObject = JSONObject.parseObject(resp);
-                return Optional.of(respObject.getLong("result"));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return Optional.empty();
+    public static Mono<Long> rpcLatestSlot(HttpClient client) {
+        return executeJsonRpcReq(client, RPC_LATEST_SLOT)
+                .doOnError(err -> log.error("<<< [SolanaRxRequestUtil] got exception on rpcAssociatedTokenAccountByOwner", err))
+                .flatMap(respJsonStr -> {
+                    JSONObject respObject = JSONObject.parseObject(respJsonStr);
+                    return null != respObject ? Mono.just(respObject.getLong("result")) : Mono.empty();
+                });
     }
 
     /**
      * Get Block Full Detail
      */
-    public static Optional<BlockResult> rpcFullBlockBySlot(OkHttpClient okHttpClient, String nodeUrl, Long slot) {
-        String resp = executeJsonRpcReq(okHttpClient, nodeUrl, String.format(RPC_BLOCK_BY_SLOT, slot));
-        if (StringUtils.isNotBlank(resp)) {
-            try {
-                JSONObject respObject = JSONObject.parseObject(resp);
-                JSONObject error = respObject.getJSONObject("error");
-                if (null != error) {
-                    BlockResult result = null;
-                    if (error.getString("message").contains("was skipped, or missing")) {
-                        result = BlockResult.builder().blockSkip(true).build();
+    public static Mono<BlockResult> rpcFullBlockBySlot(HttpClient client, Long slot) {
+        return executeJsonRpcReq(client, String.format(RPC_BLOCK_BY_SLOT, slot))
+                .flatMap(respJsonStr -> {
+                    JSONObject jsonObject = JSONObject.parseObject(respJsonStr);
+                    JSONObject error = jsonObject.getJSONObject("error");
+                    if (null != error) {
+                        return error.getString("message").contains("was skipped, or missing")
+                                ? Mono.just(BlockResult.builder().blockSkip(true).build())
+                                : Mono.empty();
                     }
-                    return Optional.ofNullable(result);
-                }
-                return Optional.of(
-                        JSONObject.parseObject(respObject.getJSONObject("result").toJSONString(),
-                                BlockResult.class));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return Optional.empty();
+                    return Mono.just(JSONObject.parseObject(jsonObject.getJSONObject("result").toJSONString(), BlockResult.class));
+                });
     }
 
     /**
      * Get associated token accounts
      */
-    public static List<AccountInfo> rpcAssociatedTokenAccountByOwner(OkHttpClient okHttpClient, String nodeUrl, String address) {
-        String resp = executeJsonRpcReq(okHttpClient, nodeUrl, String.format(RPC_ASSOCIATED_TOKEN_ACCOUNT, address));
-        if (StringUtils.isNotBlank(resp)) {
-            try {
-                JSONObject respObject = JSONObject.parseObject(resp);
-                return JSON.parseArray(respObject.getJSONObject("result").getJSONArray("value").toJSONString(), AccountInfo.class);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return new ArrayList<>();
-
+    public static Mono<List<AccountInfo>> rpcAssociatedTokenAccountByOwner(HttpClient client, String address) {
+        return executeJsonRpcReq(client, String.format(RPC_ASSOCIATED_TOKEN_ACCOUNT, address))
+                .doOnError(err -> log.error("<<< [SolanaRxRequestUtil] got exception on rpcAssociatedTokenAccountByOwner", err))
+                .flatMap(respJsonStr -> {
+                    JSONObject respObject = JSONObject.parseObject(respJsonStr);
+                    return null != respObject
+                            ? Mono.just(JSON.parseArray(respObject.getJSONObject("result").getJSONArray("value").toJSONString(), AccountInfo.class))
+                            : Mono.empty();
+                });
     }
 
     /**
      * Get account the latest signatures with limits
      */
-    public static List<SigResult> rpcAccountSignaturesWithLimit(OkHttpClient okHttpClient, String nodeUrl, String account, int limit) {
-        String resp = executeJsonRpcReq(okHttpClient, nodeUrl, String.format(RPC_ACC_SIGNATURE_LIMIT, account, limit));
-        if (StringUtils.isNotBlank(resp)) {
-            try {
-                JSONObject respObject = JSONObject.parseObject(resp);
-                return JSON.parseArray(JSON.toJSONString(respObject.getJSONArray("result")), SigResult.class);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return new ArrayList<>();
+    public static Mono<List<SigResult>> rpcAccountSignaturesWithLimit(HttpClient client, String account, int limit) {
+        return executeJsonRpcReq(client, String.format(RPC_ACC_SIGNATURE_LIMIT, account, limit))
+                .doOnError(err -> log.error("<<< [SolanaRxRequestUtil] got exception on rpcAccountSignaturesWithLimit", err))
+                .flatMap(respJsonStr -> {
+                    JSONObject respObject = JSONObject.parseObject(respJsonStr);
+                    return null != respObject
+                            ? Mono.just(JSON.parseArray(JSON.toJSONString(respObject.getJSONArray("result")), SigResult.class))
+                            : Mono.empty();
+                });
     }
 
     /**
      * Get transaction full detail by signature
      */
-    public static Optional<TxnResult> rpcTransactionBySignature(OkHttpClient okHttpClient, String nodeUrl, String signature) {
-        String resp = executeJsonRpcReq(okHttpClient, nodeUrl, String.format(RPC_FULL_TRANSACTION, signature));
-        if (StringUtils.isNotBlank(resp)) {
-            try {
-                JSONObject respObject = JSONObject.parseObject(resp);
-                return Optional.of(
-                        JSON.parseObject(respObject.getJSONObject("result").toJSONString(),
-                                TxnResult.class));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return Optional.empty();
+    public static Mono<TxnResult> rpcTransactionBySignature(HttpClient client, String signature) {
+        return executeJsonRpcReq(client, String.format(RPC_FULL_TRANSACTION, signature))
+                .doOnError(err -> log.error("<<< [SolanaRxRequestUtil] got exception on rpcTransactionBySignature", err))
+                .flatMap(respJsonStr -> {
+                    JSONObject respObject = JSONObject.parseObject(respJsonStr);
+                    return null != respObject
+                            ? Mono.just(JSON.parseObject(respObject.getJSONObject("result").toJSONString(), TxnResult.class))
+                            : Mono.empty();
+                });
     }
 
     /**
      * Get AccountInfoData
-     *
-     * @param okHttpClient
-     * @param account
-     * @return
      */
-    public static Optional<String> rpcAccountInfoDataBase64(OkHttpClient okHttpClient, String nodeUrl, String account) {
-        String resp = executeJsonRpcReq(okHttpClient, nodeUrl, String.format(RPC_ACCOUNT_INFO_DATA, account));
-        Optional<String> opResult = Optional.empty();
-        if (StringUtils.isNotBlank(resp)) {
-            try {
-                JSONObject respObject = JSONObject.parseObject(resp);
-
-                JSONObject valueObject = respObject.getJSONObject("result").getJSONObject("value");
-                if (valueObject != null) {
-                    opResult = Optional.of(valueObject.getJSONArray("data").get(0).toString());
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return opResult;
+    public static Mono<String> rpcAccountInfoDataBase64(HttpClient client, String account) {
+        return executeJsonRpcReq(client, String.format(RPC_ACCOUNT_INFO_DATA, account))
+                .doOnError(err -> log.error("<<< [SolanaRxRequestUtil] got exception on rpcAccountInfoDataBase64", err))
+                .flatMap(respJsonStr -> {
+                    JSONObject respObject = JSONObject.parseObject(respJsonStr);
+                    JSONObject valueObject = respObject.getJSONObject("result").getJSONObject("value");
+                    return null != valueObject
+                            ? Mono.just(valueObject.getJSONArray("data").get(0).toString())
+                            : Mono.empty();
+                });
     }
-
-    /**
-     * Request external metaplex json result
-     */
-    public static Optional<MetaplexStandardJsonObj> metaplexExternalJsonReq(OkHttpClient okHttpClient, String nftUrl) {
-        Request request = new Request.Builder()
-                .url(nftUrl)
-                .build();
-        try {
-            Response response = okHttpClient.newCall(request).execute();
-            return Optional.of(JSONObject.parseObject(response.body().string(), MetaplexStandardJsonObj.class));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return Optional.empty();
-    }
-
 
     private static Mono<String> executeJsonRpcReq(HttpClient client, String jsonMsg) {
         return client
