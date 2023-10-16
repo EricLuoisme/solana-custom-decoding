@@ -3,19 +3,16 @@ package com.solana.custom.rx;
 import com.alibaba.fastjson2.JSON;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.net.MediaType;
 import com.solana.custom.constant.NetConstants;
 import com.solana.custom.dto.json.JsonRpc;
 import com.solana.custom.utils.TrustAllX509CertManager;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
-import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
-import jdk.jfr.ContentType;
 import org.junit.Test;
 import reactor.core.publisher.Mono;
 import reactor.netty.ByteBufMono;
@@ -74,9 +71,6 @@ public class ReactiveCallingTest {
         String respStr = respStrMono.block();
         JsonRpc jsonRpc = JSON.parseObject(respStr, JsonRpc.class);
         System.out.println(om.writerWithDefaultPrettyPrinter().writeValueAsString(jsonRpc));
-
-//        JsonRpc jsonRpc = jsonRpcMono.block();
-//        System.out.println(om.writerWithDefaultPrettyPrinter().writeValueAsString(jsonRpc));
     }
 
 

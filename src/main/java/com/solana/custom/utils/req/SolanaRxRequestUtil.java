@@ -4,8 +4,13 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.solana.custom.dto.*;
 import com.solana.custom.dto.metaplex.MetaplexStandardJsonObj;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import okhttp3.*;
 import org.apache.commons.lang3.StringUtils;
+import reactor.core.publisher.Mono;
+import reactor.netty.ByteBufMono;
 import reactor.netty.http.client.HttpClient;
 
 import java.io.IOException;
@@ -179,31 +184,16 @@ public class SolanaRxRequestUtil {
     }
 
 
-    private static String executeJsonRpcReq(OkHttpClient okHttpClient, String nodeUrl, String jsonMsg) {
-        RequestBody reqBody = RequestBody.create(MEDIA_TYPE, jsonMsg);
-        Request request = new Request.Builder()
-                .url(nodeUrl)
-                .method("POST", reqBody)
-                .addHeader("Content-Type", "application/json")
-                .build();
-
-        int time = 0;
-        String respBodyStr = "";
-        while (time++ < RETRY_COUNT) {
-            try {
-                ResponseBody respBody = okHttpClient.newCall(request).execute().body();
-                if (respBody != null) {
-                    respBodyStr = respBody.string();
-                    if (respBodyStr.contains("error")) {
-                        return respBodyStr;
-                    }
-                    break;
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        return respBodyStr;
+    private static Mono<String> executeJsonRpcReq(HttpClient client, String jsonMsg) {
+        return client
+                .headers(head -> head.set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON))
+                .post()
+                .send(ByteBufMono.fromString(Mono.just(jsonMsg)))
+                .responseSingle((httpClientResponse, byteBufMono) ->
+                        HttpResponseStatus.OK.equals(httpClientResponse.status())
+                                ? byteBufMono.asString()
+                                : byteBufMono.asString().flatMap(errorMessage -> Mono.error(new RuntimeException("HTTP Error: " + httpClientResponse.status().code() + ", Message: " + errorMessage))))
+                .retry(RETRY_COUNT);
     }
 
 }
