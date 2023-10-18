@@ -29,29 +29,31 @@ public class MetaplexDecodeHandler_Rx {
     /**
      * Call and get nft concrete json result
      *
-     * @param base64DataStr nft data info encoded in Base64
+     * @param base64DataStrMono nft data info encoded in Base64, stream
      * @return standard metaplex json obj
      */
-    public static Mono<MetaplexStandardJsonObj> accountInfoData2JsonObj(String base64DataStr) {
-
-        if (StringUtils.isBlank(base64DataStr)) {
-            return Mono.empty();
-        }
-
-        byte[] decode = Base64.decode(base64DataStr);
-        if (decode.length < 320) {
-            return Mono.empty();
-        }
-
-        byte[] uri = new byte[204];
-        System.arraycopy(decode, 115, uri, 0, 204);
-        byte[] trimUri = trimRight(uri);
-        if (trimUri.length < 4) {
-            return Mono.empty();
-        }
-
-        return ExternalRequestUtil_Rx.metaplexExternalJsonReq(
-                new String(trimUri, 4, trimUri.length - 4, StandardCharsets.UTF_8));
+    public static Mono<MetaplexStandardJsonObj> accountInfoData2JsonObj(Mono<String> base64DataStrMono) {
+        return base64DataStrMono
+                .flatMap(base64DataStr -> {
+                    // empty & not standard nft string checking
+                    if (StringUtils.isBlank(base64DataStr)) {
+                        return Mono.empty();
+                    }
+                    byte[] decode = Base64.decode(base64DataStr);
+                    if (decode.length < 320) {
+                        return Mono.empty();
+                    }
+                    // extract nft uri
+                    byte[] uri = new byte[204];
+                    System.arraycopy(decode, 115, uri, 0, 204);
+                    byte[] trimUri = trimRight(uri);
+                    if (trimUri.length < 4) {
+                        return Mono.empty();
+                    }
+                    // request external nft json
+                    return ExternalRequestUtil_Rx.metaplexExternalJsonReq(
+                            new String(trimUri, 4, trimUri.length - 4, StandardCharsets.UTF_8));
+                });
     }
 
 
