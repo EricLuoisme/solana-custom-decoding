@@ -32,12 +32,15 @@ public class SolanaRequestUtil_Rx {
      */
     public static Mono<LatestBlock> rpcLatestBlock(HttpClient client) {
         return executeJsonRpcReq(client, RPC_LATEST_BLOCK)
-                .doOnError(err -> log.error("<<< [SolanaRxRequestUtil] got exception on rpcAssociatedTokenAccountByOwner", err))
                 .flatMap(respJsonStr -> {
                     JSONObject respObject = JSONObject.parseObject(respJsonStr);
                     return null != respObject
                             ? Mono.just(JSONObject.parseObject(respObject.getJSONObject("result").getJSONObject("value").toJSONString(), LatestBlock.class))
-                            : Mono.empty();
+                            : Mono.error(new RuntimeException("Json format Error"));
+                })
+                .onErrorResume(err -> {
+                    log.error("<<< [SolanaRxRequestUtil] got exception on rpcLatestBlock:{}", err.getMessage());
+                    return Mono.empty();
                 });
     }
 
@@ -46,10 +49,15 @@ public class SolanaRequestUtil_Rx {
      */
     public static Mono<Long> rpcLatestSlot(HttpClient client) {
         return executeJsonRpcReq(client, RPC_LATEST_SLOT)
-                .doOnError(err -> log.error("<<< [SolanaRxRequestUtil] got exception on rpcAssociatedTokenAccountByOwner", err))
                 .flatMap(respJsonStr -> {
                     JSONObject respObject = JSONObject.parseObject(respJsonStr);
-                    return null != respObject ? Mono.just(respObject.getLong("result")) : Mono.empty();
+                    return null != respObject
+                            ? Mono.just(respObject.getLong("result"))
+                            : Mono.error(new RuntimeException("Json format Error"));
+                })
+                .onErrorResume(err -> {
+                    log.error("<<< [SolanaRxRequestUtil] got exception on rpcLatestSlot:{}", err.getMessage());
+                    return Mono.empty();
                 });
     }
 
@@ -64,9 +72,13 @@ public class SolanaRequestUtil_Rx {
                     if (null != error) {
                         return error.getString("message").contains("was skipped, or missing")
                                 ? Mono.just(BlockResult.builder().blockSkip(true).build())
-                                : Mono.empty();
+                                : Mono.error(new RuntimeException("Json format Error"));
                     }
                     return Mono.just(JSONObject.parseObject(jsonObject.getJSONObject("result").toJSONString(), BlockResult.class));
+                })
+                .onErrorResume(err -> {
+                    log.error("<<< [SolanaRxRequestUtil] got exception on rpcFullBlockBySlot:{}", err.getMessage());
+                    return Mono.empty();
                 });
     }
 
@@ -75,12 +87,15 @@ public class SolanaRequestUtil_Rx {
      */
     public static Mono<List<AccountInfo>> rpcAssociatedTokenAccountByOwner(HttpClient client, String address) {
         return executeJsonRpcReq(client, String.format(RPC_ASSOCIATED_TOKEN_ACCOUNT, address))
-                .doOnError(err -> log.error("<<< [SolanaRxRequestUtil] got exception on rpcAssociatedTokenAccountByOwner", err))
                 .flatMap(respJsonStr -> {
                     JSONObject respObject = JSONObject.parseObject(respJsonStr);
                     return null != respObject
                             ? Mono.just(JSON.parseArray(respObject.getJSONObject("result").getJSONArray("value").toJSONString(), AccountInfo.class))
-                            : Mono.empty();
+                            : Mono.error(new RuntimeException("Json format Error"));
+                })
+                .onErrorResume(err -> {
+                    log.error("<<< [SolanaRxRequestUtil] got exception on rpcAssociatedTokenAccountByOwner:{}", err.getMessage());
+                    return Mono.empty();
                 });
     }
 
@@ -89,13 +104,17 @@ public class SolanaRequestUtil_Rx {
      */
     public static Mono<List<SigResult>> rpcAccountSignaturesWithLimit(HttpClient client, String account, int limit) {
         return executeJsonRpcReq(client, String.format(RPC_ACC_SIGNATURE_LIMIT, account, limit))
-                .doOnError(err -> log.error("<<< [SolanaRxRequestUtil] got exception on rpcAccountSignaturesWithLimit", err))
                 .flatMap(respJsonStr -> {
                     JSONObject respObject = JSONObject.parseObject(respJsonStr);
                     return null != respObject
                             ? Mono.just(JSON.parseArray(JSON.toJSONString(respObject.getJSONArray("result")), SigResult.class))
-                            : Mono.empty();
+                            : Mono.error(new RuntimeException("Json format Error"));
+                })
+                .onErrorResume(err -> {
+                    log.error("<<< [SolanaRxRequestUtil] got exception on rpcAccountSignaturesWithLimit:{}", err.getMessage());
+                    return Mono.empty();
                 });
+
     }
 
     /**
@@ -103,12 +122,15 @@ public class SolanaRequestUtil_Rx {
      */
     public static Mono<TxnResult> rpcTransactionBySignature(HttpClient client, String signature) {
         return executeJsonRpcReq(client, String.format(RPC_FULL_TRANSACTION, signature))
-                .doOnError(err -> log.error("<<< [SolanaRxRequestUtil] got exception on rpcTransactionBySignature", err))
                 .flatMap(respJsonStr -> {
                     JSONObject respObject = JSONObject.parseObject(respJsonStr);
                     return null != respObject
                             ? Mono.just(JSON.parseObject(respObject.getJSONObject("result").toJSONString(), TxnResult.class))
-                            : Mono.empty();
+                            : Mono.error(new RuntimeException("Json format Error"));
+                })
+                .onErrorResume(err -> {
+                    log.error("<<< [SolanaRxRequestUtil] got exception on rpcTransactionBySignature:{}", err.getMessage());
+                    return Mono.empty();
                 });
     }
 
@@ -117,13 +139,16 @@ public class SolanaRequestUtil_Rx {
      */
     public static Mono<String> rpcAccountInfoDataBase64(HttpClient client, String account) {
         return executeJsonRpcReq(client, String.format(RPC_ACCOUNT_INFO_DATA, account))
-                .doOnError(err -> log.error("<<< [SolanaRxRequestUtil] got exception on rpcAccountInfoDataBase64", err))
                 .flatMap(respJsonStr -> {
                     JSONObject respObject = JSONObject.parseObject(respJsonStr);
                     JSONObject valueObject = respObject.getJSONObject("result").getJSONObject("value");
                     return null != valueObject
                             ? Mono.just(valueObject.getJSONArray("data").get(0).toString())
-                            : Mono.empty();
+                            : Mono.error(new RuntimeException("Json format Error"));
+                })
+                .onErrorResume(err -> {
+                    log.error("<<< [SolanaRxRequestUtil] got exception on rpcAccountInfoDataBase64:{}", err.getMessage());
+                    return Mono.empty();
                 });
     }
 
