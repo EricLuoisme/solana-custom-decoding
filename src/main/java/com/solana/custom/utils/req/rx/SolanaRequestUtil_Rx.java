@@ -25,7 +25,7 @@ import static com.solana.custom.constant.JsonRpcConstants.*;
 @Slf4j
 public class SolanaRequestUtil_Rx {
 
-    private static final int RETRY_COUNT = 3;
+    private static final int RETRY_COUNT = 2;
 
     /**
      * Get LatestBlock
@@ -37,10 +37,6 @@ public class SolanaRequestUtil_Rx {
                     return null != respObject
                             ? Mono.just(JSONObject.parseObject(respObject.getJSONObject("result").getJSONObject("value").toJSONString(), LatestBlock.class))
                             : Mono.error(new RuntimeException("Json format Error"));
-                })
-                .onErrorResume(err -> {
-                    log.error("<<< [SolanaRxRequestUtil] got exception on rpcLatestBlock:{}", err.getMessage());
-                    return Mono.empty();
                 });
     }
 
@@ -54,10 +50,6 @@ public class SolanaRequestUtil_Rx {
                     return null != respObject
                             ? Mono.just(respObject.getLong("result"))
                             : Mono.error(new RuntimeException("Json format Error"));
-                })
-                .onErrorResume(err -> {
-                    log.error("<<< [SolanaRxRequestUtil] got exception on rpcLatestSlot:{}", err.getMessage());
-                    return Mono.empty();
                 });
     }
 
@@ -75,10 +67,6 @@ public class SolanaRequestUtil_Rx {
                                 : Mono.error(new RuntimeException("Json format Error"));
                     }
                     return Mono.just(JSONObject.parseObject(jsonObject.getJSONObject("result").toJSONString(), BlockResult.class));
-                })
-                .onErrorResume(err -> {
-                    log.error("<<< [SolanaRxRequestUtil] got exception on rpcFullBlockBySlot:{}", err.getMessage());
-                    return Mono.empty();
                 });
     }
 
@@ -92,10 +80,6 @@ public class SolanaRequestUtil_Rx {
                     return null != respObject
                             ? Mono.just(JSON.parseArray(respObject.getJSONObject("result").getJSONArray("value").toJSONString(), AccountInfo.class))
                             : Mono.error(new RuntimeException("Json format Error"));
-                })
-                .onErrorResume(err -> {
-                    log.error("<<< [SolanaRxRequestUtil] got exception on rpcAssociatedTokenAccountByOwner:{}", err.getMessage());
-                    return Mono.empty();
                 });
     }
 
@@ -109,10 +93,6 @@ public class SolanaRequestUtil_Rx {
                     return null != respObject
                             ? Mono.just(JSON.parseArray(JSON.toJSONString(respObject.getJSONArray("result")), SigResult.class))
                             : Mono.error(new RuntimeException("Json format Error"));
-                })
-                .onErrorResume(err -> {
-                    log.error("<<< [SolanaRxRequestUtil] got exception on rpcAccountSignaturesWithLimit:{}", err.getMessage());
-                    return Mono.empty();
                 });
 
     }
@@ -127,10 +107,6 @@ public class SolanaRequestUtil_Rx {
                     return null != respObject
                             ? Mono.just(JSON.parseObject(respObject.getJSONObject("result").toJSONString(), TxnResult.class))
                             : Mono.error(new RuntimeException("Json format Error"));
-                })
-                .onErrorResume(err -> {
-                    log.error("<<< [SolanaRxRequestUtil] got exception on rpcTransactionBySignature:{}", err.getMessage());
-                    return Mono.empty();
                 });
     }
 
@@ -145,10 +121,6 @@ public class SolanaRequestUtil_Rx {
                     return null != valueObject
                             ? Mono.just(valueObject.getJSONArray("data").get(0).toString())
                             : Mono.error(new RuntimeException("Json format Error"));
-                })
-                .onErrorResume(err -> {
-                    log.error("<<< [SolanaRxRequestUtil] got exception on rpcAccountInfoDataBase64:{}", err.getMessage());
-                    return Mono.empty();
                 });
     }
 

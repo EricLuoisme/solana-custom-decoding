@@ -83,7 +83,11 @@ public class MetaplexDecodeHandler_Rx {
                 .flatMapMany(map ->
                         Flux.fromIterable(map.entrySet())
                                 .flatMap(entry -> constructNftItemTask(client, entry.getKey(), entry.getValue())))
-                .filter(nftItem -> StringUtils.isNotBlank(nftItem.getName()));
+                // filter for empty name nft
+                .filter(nftItem -> StringUtils.isNotBlank(nftItem.getName()))
+                // continue for single flux item's exception
+                .onErrorContinue(((throwable, o) ->
+                        log.warn("<<< [MetaplexDecodeHandler_Rx] got exception on accountAllAssociatedNftFiles, skip this item")));
     }
 
 
